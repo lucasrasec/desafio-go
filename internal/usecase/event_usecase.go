@@ -61,6 +61,7 @@ func (uc *EventUseCases) GetSpotsByEventID(eventID int) ([]domain.Spot, error) {
 func (uc *EventUseCases) ReserveSpot(eventID int, spots []string) ([]domain.Spot, error) {
 	var reservedSpots []domain.Spot
 
+	// Iterate through a copy of the spots slice to avoid modification issues
 	for _, name := range spots {
 		found := false
 		for i, spot := range uc.data.Spots {
@@ -69,7 +70,7 @@ func (uc *EventUseCases) ReserveSpot(eventID int, spots []string) ([]domain.Spot
 					return nil, fmt.Errorf("spot %s is already reserved", name)
 				}
 				uc.data.Spots[i].Status = domain.SpotStatusReserved
-				reservedSpots = append(reservedSpots, uc.data.Spots[i])
+				reservedSpots = append(reservedSpots, spot) // Use the original spot object
 				found = true
 				break
 			}
@@ -77,7 +78,7 @@ func (uc *EventUseCases) ReserveSpot(eventID int, spots []string) ([]domain.Spot
 		if !found {
 			return nil, fmt.Errorf("spot %s not found for event ID %d", name, eventID)
 		}
-		return reservedSpots, nil
 	}
-	return []domain.Spot{}, errors.New("spot not found for this event")
+
+	return reservedSpots, nil
 }
